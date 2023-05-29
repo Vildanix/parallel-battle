@@ -7,7 +7,8 @@ public class GridSelector : MonoBehaviour
     [SerializeField] LayerMask mask;
     [SerializeField] Grid grid;
     [SerializeField] private GridTogglePattern selectedPattern;
-
+    [SerializeField] private List<GridTogglePattern> patternList;
+    
     private void Update()
     {
         var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -22,6 +23,7 @@ public class GridSelector : MonoBehaviour
                 if (Input.GetMouseButtonDown(0))
                 {
                     grid.ToggleCells(coords, selectedPattern);
+                    selectedPattern = patternList[Mathf.RoundToInt(Random.Range(0, patternList.Count))];
                 }
             }
             else

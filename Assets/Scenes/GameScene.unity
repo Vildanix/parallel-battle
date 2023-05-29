@@ -163,6 +163,8 @@ MonoBehaviour:
     type: 3}
   darkStonePrefab: {fileID: -50941762913163108, guid: c8d964440c48af246a333bab4ca021fb,
     type: 3}
+  score: 50
+  text: {fileID: 1942759367}
 --- !u!4 &108596898
 Transform:
   m_ObjectHideFlags: 0
@@ -195,6 +197,12 @@ MonoBehaviour:
     m_Bits: 64
   grid: {fileID: 108596897}
   selectedPattern: {fileID: 11400000, guid: fb4a7474fc1038741aec5fc507515415, type: 2}
+  patternList:
+  - {fileID: 11400000, guid: 8897e53744d82aa4f864bc35fb153893, type: 2}
+  - {fileID: 11400000, guid: 2deebf3c7e4e966448fb1adea8d48fff, type: 2}
+  - {fileID: 11400000, guid: 84d33efa3c2b53b47a986fd4a7498c49, type: 2}
+  - {fileID: 11400000, guid: fb4a7474fc1038741aec5fc507515415, type: 2}
+  - {fileID: 11400000, guid: 1db904a8a2b10004da0b9934ba504279, type: 2}
 --- !u!1 &145178446
 GameObject:
   m_ObjectHideFlags: 0

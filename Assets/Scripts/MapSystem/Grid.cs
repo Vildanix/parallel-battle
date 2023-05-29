@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Pool;
 using Random = UnityEngine.Random;
@@ -17,6 +18,9 @@ public class Grid : MonoBehaviour
     
     Dictionary<(int, int), Cell> cellReferences = new();
     Dictionary<(int, int), Cell> highlightedCells = new();
+
+    [SerializeField] private int score = 50;
+    [SerializeField] private TextMeshProUGUI text;
 
     private void Awake()
     {
@@ -69,6 +73,28 @@ public class Grid : MonoBehaviour
         return (Mathf.RoundToInt(point.x), Mathf.RoundToInt(point.z));
     }
 
+    private void UpdateScore()
+    {
+        var scoreChange = 0;
+        foreach (var cellRef in cellReferences)
+        {
+            scoreChange += cellRef.Value.GetScore();
+        }
+
+        score += scoreChange;
+        text.text = $"{score} / 100";
+
+        if (score <= 0)
+        {
+            // End Game
+        }
+
+        if (score >= 100)
+        {
+            // End Game
+        }
+    }
+
     public bool IsValidCell(int x, int y)
     {
         return cellReferences.ContainsKey((x, y));
@@ -85,6 +111,8 @@ public class Grid : MonoBehaviour
         {
             cellReferences[(x, y)].ToggleCell();
         });
+
+        UpdateScore();
     }
 
     public void HighlightCells((int, int) center, GridTogglePattern selectedPattern, bool validStatus)
