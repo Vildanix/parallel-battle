@@ -11,6 +11,7 @@ public class Grid : MonoBehaviour
     [SerializeField] private Cell floorPrefab;
     
     Dictionary<(int, int), Cell> cellReferences = new();
+    Dictionary<(int, int), Cell> highlightedCells = new();
 
     private void Awake()
     {
@@ -58,48 +59,75 @@ public class Grid : MonoBehaviour
         return (Mathf.RoundToInt(point.x), Mathf.RoundToInt(point.z));
     }
 
-    public bool IsInRange(int testValue, int start, int end)
+    public bool IsValidCell(int x, int y)
     {
-        if (start > end)
-            return testValue >= end && testValue <= start;
-        return testValue >= start && testValue <= end;
+        return cellReferences.ContainsKey((posX, posY));
     }
 
-    public List<Cell> GetPathBetweenCells(Cell startCell, Cell targetCell)
+    public bool CanPlacePattern((int, int) center, int patternSize)
     {
-        var path = new List<Cell>();
-        var currentPos = GetCellCoordsFromPoint(startCell.transform.position);
-        var endPos = GetCellCoordsFromPoint(targetCell.transform.position);
+        return ProcessPattern(center, patternSize, (x, y) => !grid.IsValidCell(x, y), null);
+    }
 
-        //path.Add(startCell); // TODO: replace with current player position to prevent rendering path from last cell during movement
-
-        int totalDistance = Mathf.Max(Mathf.Abs(endPos.Item1 - currentPos.Item1), Mathf.Abs(endPos.Item2 - currentPos.Item2));
-        for (int step = 0; step < totalDistance; step++ )
+    public void ToggleCells((int, int) center, int patternSize)
+    {
+        ProcessPattern(center, patternSize, nu(x, y) => !grid.IsValidCell(x, y), (x, y) =>
         {
-            var stepDirection = GetOptimalStepDirection(currentPos, endPos);
-            currentPos.Item1 += stepDirection.Item1;
-            currentPos.Item2 += stepDirection.Item2;
-            if (cellReferences.ContainsKey(currentPos))
+            cellReferences[(posX, posY)].ToggleCell();
+        });
+    }
+
+    public void HighlightCells((int, int) center, int patternSize, bool validStatus)
+    {
+        ProcessPattern(center, patternSize, nu(x, y) => !grid.IsValidCell(x, y), (x, y) =>
+        {
+            cellReferences[(posX, posY)].SetHighlight();
+            highlightedCells.Add((posX, posY), cellReferences[(posX, posY)]);
+        });
+    }
+
+    public void ClearHighlightedCells()
+    {
+        if (highlightedCells != null)
+        {
+            foreach (var cell in highlightedCells)
             {
-                path.Add(cellReferences[currentPos]);
+                if (cell != null)
+                {
+                    cell.ClearHighlight();
+                }
+            }
+
+            highlightedCells = null;
+        }
+    }
+
+
+    private bool ProcessPattern((int, int) center, int patternSize, Func<int, int, bool> condition, Action<int, int> action)
+    {
+        var halfSize = patternSize / 2;
+        var startX = center.Item1 - halfSize;
+        var startY = center.Item2 - halfSize;
+
+        for (int x = startX; x < startX + patternSize; x++)
+        {
+            for (int y = startY; y < startY + patternSize; y++)
+            {
+                if (!condition(x, y))
+                {
+                    return false;
+                }
             }
         }
-        return path;
-    }
 
-    private (int, int) GetOptimalStepDirection((int, int) currentPos, (int, int) endPos)
-    {
-        var horizontalDiff = Mathf.Abs(currentPos.Item1 - endPos.Item1);
-        var verticalDiff = Mathf.Abs(currentPos.Item2 - endPos.Item2);
-        if (horizontalDiff > verticalDiff)
+        for (int x = startX; x < startX + patternSize; x++)
         {
-            return (Mathf.RoundToInt(Mathf.Sign(endPos.Item1 - currentPos.Item1)), 0);
-        }
-        if (horizontalDiff < verticalDiff)
-        {
-            return (0, Mathf.RoundToInt(Mathf.Sign(endPos.Item2 - currentPos.Item2)));
+            for (int y = startY; y < startY + patternSize; y++)
+            {
+                action(x, y);
+            }
         }
 
-        return (Mathf.RoundToInt(Mathf.Sign(endPos.Item1 - currentPos.Item1)), Mathf.RoundToInt(Mathf.Sign(endPos.Item2 - currentPos.Item2))); 
+        return true;
     }
 }

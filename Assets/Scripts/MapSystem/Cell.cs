@@ -22,10 +22,6 @@ public class Cell : MonoBehaviour
 
     private enum LIGHT_LEVEL { LIGHT = 1, DARK = 2};
 
-    private void Start()
-    {
-    }
-
     private void OnEnable()
     {
         animationProgress = 0;
@@ -45,6 +41,14 @@ public class Cell : MonoBehaviour
         lightLevel = lightLevel == LIGHT_LEVEL.LIGHT ? LIGHT_LEVEL.DARK : LIGHT_LEVEL.LIGHT;
     }
 
+    public void SetHighlight() {
+        
+    }
+
+    public void ClearHighlight() {
+
+    }
+
     private void UpdateAnimationTimer()
     {
         var updatedProgress = animationProgress + Time.deltaTime * (lightLevel == LIGHT_LEVEL.LIGHT ? -1 : 1);
@@ -58,5 +62,4 @@ public class Cell : MonoBehaviour
             cellRenderer.material = lightCellMat;
         }
     }
-    
 }
