@@ -100,14 +100,14 @@ public class PlayerController : MonoBehaviour
 
             if (selectedCell && !HasValidPath())
             {
-                var path = grid.GetPathBetweenCells(currentCell, selectedCell);
+                /*var path = grid.GetPathBetweenCells(currentCell, selectedCell);
                 HighlightCellPath(path);
                 
                 if (path != null && Input.GetMouseButtonDown(0))
                 {
                     movementWaypoints = path;
                     onMoveCommand.Invoke();
-                }
+                }*/
             } else
             {
                 HighlightCellPath(movementWaypoints);

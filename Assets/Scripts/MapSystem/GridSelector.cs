@@ -6,29 +6,32 @@ public class GridSelector : MonoBehaviour
 {
     [SerializeField] LayerMask mask;
     [SerializeField] Grid grid;
+    [SerializeField] private GridTogglePattern selectedPattern;
 
     private void Update()
     {
-        var ray = cam.ScreenPointToRay(Input.mousePosition;);
-        if(Physics.Raycast(ray, out var hit, Mathf.Infinity, mask))
+        var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        if (Physics.Raycast(ray, out var hit, Mathf.Infinity, mask))
         {
-            var cell = grid.GetCellAtPosition(hit.point);
+            var coords = grid.GetCellCoordsFromPoint(hit.point);
 
-            if (cell != null)
+            if (grid.CanPlacePattern(coords, selectedPattern))
             {
-                var coords = grid.GetCellCoordsFromPoint(cell.transform.position);
+                grid.HighlightCells(coords, selectedPattern, true);
 
-                if (grid.CanPlacePattern(coords, patternSize))
+                if (Input.GetMouseButtonDown(0))
                 {
-                    // Highlight cells valid placement
-                    
-                    if (Input.OnMouseButtonDown(0)) {
-                        ToggleCells(coords, patternSize);
-                    }
-                } else {
-                    // Highlight cells invalid placement
+                    grid.ToggleCells(coords, selectedPattern);
                 }
             }
+            else
+            {
+                grid.HighlightCells(coords, selectedPattern, false);
+            }
+        }
+        else
+        {
+            grid.ClearHighlightedCells();
         }
     }
 }

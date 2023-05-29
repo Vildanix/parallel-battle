@@ -5,7 +5,9 @@ using UnityEngine.Pool;
 [CreateAssetMenu(fileName = "NewGridTogglePattern", menuName = "Game/Grid Toggle Pattern")]
 public class GridTogglePattern : ScriptableObject
 {
-    public bool[,] pattern;
+    public bool[] patternTop;
+    public bool[] patternSide;
+    public bool[] patternBottom;
 
-    public int Size => pattern.GetLength(0); // Assuming it's a square pattern
+    public int Size => patternTop.GetLength(0); // Assuming it's a square pattern
 }

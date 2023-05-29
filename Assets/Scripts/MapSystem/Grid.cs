@@ -1,6 +1,9 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Pool;
+using Random = UnityEngine.Random;
 
 public class Grid : MonoBehaviour
 {
@@ -9,6 +12,8 @@ public class Grid : MonoBehaviour
     [SerializeField] int seedRandom;
     [SerializeField, Range(0f, 1f)] float spawnProbability = 0.1f;
     [SerializeField] private Cell floorPrefab;
+    [SerializeField] private Stone lightStonePrefab;
+    [SerializeField] private Stone darkStonePrefab;
     
     Dictionary<(int, int), Cell> cellReferences = new();
     Dictionary<(int, int), Cell> highlightedCells = new();
@@ -36,6 +41,11 @@ public class Grid : MonoBehaviour
         newCell.name = $"Cell {x}, {y}";
         cellReferences.Add((x, y), newCell);
 
+        if (Random.value < spawnProbability)
+        {
+            var stoneLightLevel = Random.value > 0.5 ? LIGHT_LEVEL.LIGHT : LIGHT_LEVEL.DARK;
+            newCell.SetStone(stoneLightLevel == LIGHT_LEVEL.LIGHT ? lightStonePrefab : darkStonePrefab);
+        }
     }
 
     public Cell GetCellAtPosition(Vector3 position)
@@ -54,35 +64,37 @@ public class Grid : MonoBehaviour
         var coords = GetCellCoordsFromPoint(position);
     }
 
-    private (int, int) GetCellCoordsFromPoint(Vector3 point)
+    public (int, int) GetCellCoordsFromPoint(Vector3 point)
     {
         return (Mathf.RoundToInt(point.x), Mathf.RoundToInt(point.z));
     }
 
     public bool IsValidCell(int x, int y)
     {
-        return cellReferences.ContainsKey((posX, posY));
+        return cellReferences.ContainsKey((x, y));
     }
 
-    public bool CanPlacePattern((int, int) center, int patternSize)
+    public bool CanPlacePattern((int, int) center, GridTogglePattern selectedPattern)
     {
-        return ProcessPattern(center, patternSize, (x, y) => !grid.IsValidCell(x, y), null);
+        return ProcessPattern(center, selectedPattern, (x, y) => IsValidCell(x, y), null);
     }
 
-    public void ToggleCells((int, int) center, int patternSize)
+    public void ToggleCells((int, int) center, GridTogglePattern selectedPattern)
     {
-        ProcessPattern(center, patternSize, nu(x, y) => !grid.IsValidCell(x, y), (x, y) =>
+        ProcessPattern(center, selectedPattern, (x, y) => IsValidCell(x, y), (x, y) =>
         {
-            cellReferences[(posX, posY)].ToggleCell();
+            cellReferences[(x, y)].ToggleCell();
         });
     }
 
-    public void HighlightCells((int, int) center, int patternSize, bool validStatus)
+    public void HighlightCells((int, int) center, GridTogglePattern selectedPattern, bool validStatus)
     {
-        ProcessPattern(center, patternSize, nu(x, y) => !grid.IsValidCell(x, y), (x, y) =>
+        ClearHighlightedCells();
+        ProcessPattern(center, selectedPattern, (x, y) => IsValidCell(x, y), (x, y) =>
         {
-            cellReferences[(posX, posY)].SetHighlight();
-            highlightedCells.Add((posX, posY), cellReferences[(posX, posY)]);
+            cellReferences[(x, y)].SetHighlight(validStatus);
+            if (!highlightedCells.ContainsKey((x, y)))
+                highlightedCells.Add((x, y), cellReferences[(x, y)]);
         });
     }
 
@@ -92,40 +104,62 @@ public class Grid : MonoBehaviour
         {
             foreach (var cell in highlightedCells)
             {
-                if (cell != null)
-                {
-                    cell.ClearHighlight();
-                }
+                cell.Value.ClearHighlight();
             }
 
-            highlightedCells = null;
+            highlightedCells.Clear();
         }
     }
 
 
-    private bool ProcessPattern((int, int) center, int patternSize, Func<int, int, bool> condition, Action<int, int> action)
+    private bool ProcessPattern((int, int) center, GridTogglePattern selectedPattern, Func<int, int, bool> condition, Action<int, int> action)
     {
-        var halfSize = patternSize / 2;
-        var startX = center.Item1 - halfSize;
-        var startY = center.Item2 - halfSize;
-
-        for (int x = startX; x < startX + patternSize; x++)
+        var patternSize = selectedPattern.patternSide.Length;
+        var halfSizeVertical = selectedPattern.patternTop.Length > 0 ? 1 :
+            0 + selectedPattern.patternSide.Length > 0 ? 1 :
+            0 + selectedPattern.patternBottom.Length > 0 ? 1 : 0;
+        var startX = center.Item1 - patternSize / 2;
+        var startY = center.Item2 - halfSizeVertical;
+        
+        for (int x = 0; x < selectedPattern.patternTop.Length; x++)
         {
-            for (int y = startY; y < startY + patternSize; y++)
+            if (!condition(startX + x, startY + 2))
             {
-                if (!condition(x, y))
-                {
-                    return false;
-                }
+                return false;
+            }
+        }
+        
+        for (int x = 0; x < selectedPattern.patternSide.Length; x++)
+        {
+            if (!condition(startX + x, startY +1 ))
+            {
+                return false;
+            }
+        }
+        
+        for (int x = 0; x < selectedPattern.patternBottom.Length; x++)
+        {
+            if (!condition(startX + x, startY))
+            {
+                return false;
             }
         }
 
-        for (int x = startX; x < startX + patternSize; x++)
+        if (action == null) return true;
+        
+        for (int x = 0; x < selectedPattern.patternTop.Length; x++)
         {
-            for (int y = startY; y < startY + patternSize; y++)
-            {
-                action(x, y);
-            }
+            action(startX + x, startY + 2);
+        }
+        
+        for (int x = 0; x < selectedPattern.patternSide.Length; x++)
+        {
+            action(startX + x, startY +1 );
+        }
+        
+        for (int x = 0; x < selectedPattern.patternBottom.Length; x++)
+        {
+            action(startX + x, startY );
         }
 
         return true;
