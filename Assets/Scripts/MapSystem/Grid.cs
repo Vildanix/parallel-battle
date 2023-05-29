@@ -26,6 +26,8 @@ public class Grid : MonoBehaviour
     public UnityEvent WinAction;
     public UnityEvent LoseAction;
 
+    private int stoneCount = 0;
+
     private void Awake()
     {
         Initialize();
@@ -48,11 +50,17 @@ public class Grid : MonoBehaviour
         var newCell = Instantiate(prefab, new Vector3(x, 0, y), Quaternion.identity, transform);
         newCell.name = $"Cell {x}, {y}";
         cellReferences.Add((x, y), newCell);
+        
+        if (Random.value < spawnProbability)
+        {
+            newCell.ToggleCell();
+        }
 
         if (Random.value < spawnProbability)
         {
             var stoneLightLevel = Random.value > 0.5 ? LIGHT_LEVEL.LIGHT : LIGHT_LEVEL.DARK;
             newCell.SetStone(stoneLightLevel == LIGHT_LEVEL.LIGHT ? lightStonePrefab : darkStonePrefab);
+            stoneCount++;
         }
     }
 
@@ -85,7 +93,7 @@ public class Grid : MonoBehaviour
             scoreChange += cellRef.Value.GetScore();
         }
 
-        score += scoreChange / 2;
+        score += Mathf.RoundToInt(scoreChange / 2);
         text.text = $"{score} / 100";
 
         if (score <= 0 && LoseAction != null)

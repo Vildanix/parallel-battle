@@ -8,7 +8,7 @@ public class GridSelector : MonoBehaviour
     [SerializeField] Grid grid;
     [SerializeField] private GridTogglePattern selectedPattern;
     [SerializeField] private List<GridTogglePattern> patternList;
-    
+
     private void Update()
     {
         var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
