@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Pool;
 using Random = UnityEngine.Random;
 
@@ -21,6 +22,9 @@ public class Grid : MonoBehaviour
 
     [SerializeField] private int score = 50;
     [SerializeField] private TextMeshProUGUI text;
+
+    public UnityEvent WinAction;
+    public UnityEvent LoseAction;
 
     private void Awake()
     {
@@ -81,17 +85,17 @@ public class Grid : MonoBehaviour
             scoreChange += cellRef.Value.GetScore();
         }
 
-        score += scoreChange;
+        score += scoreChange / 2;
         text.text = $"{score} / 100";
 
-        if (score <= 0)
+        if (score <= 0 && LoseAction != null)
         {
-            // End Game
+            LoseAction.Invoke();
         }
 
-        if (score >= 100)
+        if (score >= 100 && WinAction != null )
         {
-            // End Game
+            WinAction.Invoke();
         }
     }
 

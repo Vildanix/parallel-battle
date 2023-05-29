@@ -72,7 +72,7 @@ public class Cell : MonoBehaviour
 
     private void UpdateAnimationTimer()
     {
-        var updatedProgress = animationProgress + Time.deltaTime * (lightLevel == LIGHT_LEVEL.LIGHT ? -1 : 1);
+        var updatedProgress = animationProgress + Time.deltaTime * (lightLevel == LIGHT_LEVEL.LIGHT ? 1 : -1);
         animationProgress = Mathf.Clamp(updatedProgress, 0, 1);
         if (animationProgress < 0.5f)
         {
